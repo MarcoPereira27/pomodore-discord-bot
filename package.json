@@ -1,6 +1,9 @@
 {
   "name": "pomodore",
   "version": "1.0.0",
+  "engines": {
+    "node": "14.15.1"
+  },
   "description": "A pomodoro discord bot",
   "main": "bot.js",
   "scripts": {
