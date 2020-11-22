@@ -21,6 +21,7 @@ let pomodoreStatus = {
 
 client.on('ready', () => {
   console.log('❤');
+  client.user.setActivity('Type p!help');
 });
 
 client.on('message', async (message) => {
