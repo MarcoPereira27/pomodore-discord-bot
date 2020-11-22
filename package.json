@@ -1,0 +1,16 @@
+{
+  "name": "pomodore",
+  "version": "1.0.0",
+  "description": "A pomodoro discord bot",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/opus": "^0.3.3",
+    "discord.js": "^12.4.1",
+    "ffmpeg-static": "^4.2.7"
+  }
+}
