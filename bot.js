@@ -29,7 +29,11 @@ client.on('message', async (message) => {
   const args = message.content.trim().split(' ');
 
   if (args[0] === 'p!start') {
-    //If there's arguments
+    if (pomodoreStatus.status) {
+      message.channel.send('There is already a pomodoro running!');
+      return;
+    }
+
     if (args[1]) {
       if (
         parseInt(args[1]) < 1 ||
@@ -70,17 +74,13 @@ client.on('message', async (message) => {
     }
 
     if (message.member.voice.channel) {
-      //Change status to active
       pomodoreStatus.status = true;
       pomodoreStatus.time = 1;
 
-      //Join a channel
       connection = await message.member.voice.channel.join();
 
-      //Start cycle function
       const startANewCycle = () => {
         if (pomodoreStatus.time % 2 != 0 && pomodoreStatus.status) {
-          //Work interval
           timerStartedTime = new Date();
 
           client.user.setActivity('Working time');
@@ -127,7 +127,6 @@ client.on('message', async (message) => {
           pomodoreStatus.time != 8 &&
           pomodoreStatus.status
         ) {
-          //Small pause
           timerStartedTime = new Date();
 
           dispatcher = connection.play('./sounds/time-over.ogg', {
@@ -166,7 +165,6 @@ client.on('message', async (message) => {
             startANewCycle();
           }, pomodoreStatus.minutes[1]);
         } else if (pomodoreStatus.time == 8 && pomodoreStatus.status) {
-          //Big pause
           timerStartedTime = new Date();
 
           dispatcher = connection.play('./sounds/time-over.ogg', {
@@ -190,7 +188,6 @@ client.on('message', async (message) => {
               );
             }
 
-            //Send DM's
             if (pomodoreStatus.peopleToDm.length > 0) {
               pomodoreStatus.peopleToDm.forEach((person) => {
                 client.users.cache
@@ -259,6 +256,11 @@ client.on('message', async (message) => {
 
   //Remove bot from voice channel
   if (message.content === 'p!stop') {
+    if (!pomodoreStatus.status) {
+      message.channel.send("There's no pomodoro currently running!");
+      return;
+    }
+
     client.user.setActivity('Type p!help');
 
     message.channel.send('Nice work! Glad I could help!');
@@ -342,18 +344,20 @@ client.on('message', async (message) => {
       pomodoreStatus.peopleToDm.push(message.author.id);
       message.reply('you will now receive the alerts via Direct Message!');
     }
-
-    console.log(pomodoreStatus.peopleToDm);
   }
 
   //Toggle text notifications
   if (message.content === 'p!togtext') {
-    pomodoreStatus.textAlerts = !pomodoreStatus.textAlerts;
+    if (pomodoreStatus.status) {
+      pomodoreStatus.textAlerts = !pomodoreStatus.textAlerts;
 
-    if (pomodoreStatus.textAlerts) {
-      message.channel.send('The text notifications have been turned on!');
+      if (pomodoreStatus.textAlerts) {
+        message.channel.send('The text notifications have been turned on!');
+      } else {
+        message.channel.send('The text notifications have been turned off!');
+      }
     } else {
-      message.channel.send('The text notifications have been turned off!');
+      message.channel.send("There's no pomodoro timer currently running!");
     }
   }
 
@@ -377,7 +381,7 @@ client.on('message', async (message) => {
         );
       }
     } else {
-      message.channel.send("There's no pomodoro running!");
+      message.channel.send("There's no pomodoro timer currently running!");
     }
   }
 });
