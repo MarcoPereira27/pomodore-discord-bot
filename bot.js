@@ -26,7 +26,11 @@ client.on('ready', () => {
 });
 
 client.on('message', async (message) => {
-  if (pomodoreStatus.maintenance) {
+  if (
+    pomodoreStatus.maintenance &&
+    message.content !==
+      'The bot is currently under maintenance! Sorry for the inconvenience!'
+  ) {
     message.channel.send(
       'The bot is currently under maintenance! Sorry for the inconvenience!'
     );
