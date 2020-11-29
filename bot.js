@@ -385,4 +385,17 @@ client.on('message', async (message) => {
       message.channel.send("There's no pomodoro timer currently running!");
     }
   }
+
+  if (message.content === 'p!sendoff') {
+    var guildList = client.guilds.array();
+    try {
+      guildList.forEach((guild) =>
+        guild.defaultChannel.send(
+          "Uh Oh! Pomodore needs a checkup! They'll be back in 24hours! Sorry for the inconvenience :("
+        )
+      );
+    } catch (err) {
+      console.log('Could not send message to ' + guild.name);
+    }
+  }
 });
