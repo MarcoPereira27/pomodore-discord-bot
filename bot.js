@@ -3,22 +3,17 @@ console.log('Beep beep');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
-client.login(process.env.DJS_TOKEN);
+// client.login(process.env.DJS_TOKEN);
+client.login('Nzc2Mzk1OTc1MzQ5NzY0MTI2.X60RGQ.6XPAcdTNm9PUwuTtKBXdC2_SQTE');
 
-let timerStartedTime;
-let checkTime;
-var connection, dispatcher;
+let connections = [];
+let servers = [];
 
-let pomodoreStatus = {
-  time: 1,
-  timeShow: true,
-  status: false,
-  minutes: [1500000, 300000, 900000],
-  peopleToDm: [],
-  textAlerts: true,
-  volume: 0.5,
-  maintenance: true,
-};
+setInterval(() => {
+  console.log(connections);
+  console.log('######################');
+  console.log(servers);
+}, 600000);
 
 client.on('ready', () => {
   console.log('❤');
@@ -26,36 +21,44 @@ client.on('ready', () => {
 });
 
 client.on('message', async (message) => {
-  if (
-    pomodoreStatus.maintenance &&
-    message.content !==
-      'The bot is currently under maintenance! Sorry for the inconvenience!'
-  ) {
-    message.channel.send(
-      'The bot is currently under maintenance! Sorry for the inconvenience!'
-    );
-  } else {
-    if (!message.guild) return;
+  if (!message.guild) return;
 
-    const args = message.content.trim().split(' ');
+  const args = message.content.trim().split(' ');
 
-    if (args[0] === 'p!start') {
-      if (pomodoreStatus.status) {
-        message.channel.send('There is already a pomodoro running!');
-        return;
-      }
+  if (args[0] === 'p!start') {
+    console.log('start: ' + message.member);
+    if (servers.includes(message.guild.id)) {
+      message.channel.send("There's a pomodoro already running!");
+      return;
+    }
+
+    if (message.member.voice.channel) {
+      var pomodoreStatus = {
+        time: 1,
+        timeShow: true,
+        status: false,
+        minutes: [1500000, 300000, 900000],
+        peopleToDm: [],
+        textAlerts: true,
+        volume: 0.5,
+        voiceChannelId: 0,
+        timer: null,
+        dispatcher: null,
+        timerStartedTime: new Date(),
+        connection: null,
+      };
 
       if (args[1]) {
         if (
           parseInt(args[1]) < 1 ||
-          parseInt(args[1] > 120 || isNaN(parseInt(args[1])))
+          parseInt(args[1] > 120 || isNaN(parseInt(args[1]))) ||
+          isNaN(parseInt(args[1]))
         ) {
           message.channel.send(
             'Insert a valid time between 1 and 120 minutes!'
           );
           return false;
         } else {
-          console.log('changing time');
           pomodoreStatus.minutes[0] = parseInt(args[1] * 60000);
         }
       }
@@ -64,7 +67,7 @@ client.on('message', async (message) => {
         if (
           parseInt(args[2]) < 1 ||
           parseInt(args[2] > 120) ||
-          isNaN(parseInt(args[1]))
+          isNaN(parseInt(args[2]))
         ) {
           message.channel.send(
             'Insert a valid time between 1 and 120 minutes!'
@@ -79,7 +82,7 @@ client.on('message', async (message) => {
         if (
           parseInt(args[3]) < 1 ||
           parseInt(args[3] > 120) ||
-          isNaN(parseInt(args[1]))
+          isNaN(parseInt(args[3]))
         ) {
           message.channel.send(
             'Insert a valid time between 1 and 120 minutes!'
@@ -90,328 +93,433 @@ client.on('message', async (message) => {
         }
       }
 
-      if (message.member.voice.channel) {
-        pomodoreStatus.status = true;
-        pomodoreStatus.time = 1;
+      pomodoreStatus.connection = await message.member.voice.channel.join();
 
-        connection = await message.member.voice.channel.join();
+      connections.push(pomodoreStatus);
+      servers.push(pomodoreStatus.connection.channel.guild.id);
 
-        const startANewCycle = () => {
-          if (pomodoreStatus.time % 2 != 0 && pomodoreStatus.status) {
-            timerStartedTime = new Date();
+      connections[servers.indexOf(message.guild.id)].status = true;
+      connections[servers.indexOf(message.guild.id)].time = 1;
 
-            client.user.setActivity('Working time');
+      const startANewCycle = () => {
+        if (
+          servers.indexOf(message.guild.id) != -1 &&
+          connections[servers.indexOf(message.guild.id)].time % 2 != 0 &&
+          connections[servers.indexOf(message.guild.id)].status
+        ) {
+          connections[
+            servers.indexOf(message.guild.id)
+          ].timerStartedTime = new Date();
 
-            dispatcher = connection.play('./sounds/time-over.ogg', {
-              volume: pomodoreStatus.volume,
-            });
+          connections[
+            servers.indexOf(message.guild.id)
+          ].dispatcher = connections[
+            servers.indexOf(message.guild.id)
+          ].connection.play('./sounds/time-over.ogg', {
+            volume: connections[servers.indexOf(message.guild.id)].volume,
+          });
 
-            dispatcher.on('finish', () => {
-              dispatcher = connection.play('./sounds/silence-fixer.ogg');
-            });
-
-            setTimeout(() => {
-              pomodoreStatus.time++;
-
-              if (pomodoreStatus.status && pomodoreStatus.textAlerts) {
-                message.channel.send(
-                  `You worked for ${
-                    pomodoreStatus.minutes[0] / 60000
-                  }min! Time for a small break of ${
-                    pomodoreStatus.minutes[1] / 60000
-                  }min!`
-                );
-              }
-
-              if (pomodoreStatus.peopleToDm.length > 0) {
-                pomodoreStatus.peopleToDm.forEach((person) => {
-                  client.users.cache
-                    .get(person)
-                    .send(
-                      `You worked for ${
-                        pomodoreStatus.minutes[0] / 60000
-                      }min! Time for a small break of ${
-                        pomodoreStatus.minutes[1] / 60000
-                      }min!`
-                    );
-                });
-              }
-
-              startANewCycle();
-            }, pomodoreStatus.minutes[0]);
-          } else if (
-            pomodoreStatus.time % 2 == 0 &&
-            pomodoreStatus.time != 8 &&
-            pomodoreStatus.status
-          ) {
-            timerStartedTime = new Date();
-
-            dispatcher = connection.play('./sounds/time-over.ogg', {
-              volume: pomodoreStatus.volume,
-            });
-
-            dispatcher.on('finish', () => {
-              dispatcher = connection.play('./sounds/silence-fixer.ogg');
-            });
-
-            client.user.setActivity('Break time');
-
-            setTimeout(() => {
-              pomodoreStatus.time++;
-
-              if (pomodoreStatus.status && pomodoreStatus.textAlerts) {
-                message.channel.send(
-                  `You finished your ${
-                    pomodoreStatus.minutes[1] / 60000
-                  }min break! Let's get back to work again!`
-                );
-              }
-
-              if (pomodoreStatus.peopleToDm.length > 0) {
-                pomodoreStatus.peopleToDm.forEach((person) => {
-                  client.users.cache
-                    .get(person)
-                    .send(
-                      `You finished your ${
-                        pomodoreStatus.minutes[1] / 60000
-                      }min break! Let's get back to work again!`
-                    );
-                });
-              }
-
-              startANewCycle();
-            }, pomodoreStatus.minutes[1]);
-          } else if (pomodoreStatus.time == 8 && pomodoreStatus.status) {
-            timerStartedTime = new Date();
-
-            dispatcher = connection.play('./sounds/time-over.ogg', {
-              volume: pomodoreStatus.volume,
-            });
-
-            dispatcher.on('finish', () => {
-              dispatcher = connection.play('./sounds/silence-fixer.ogg');
-            });
-
-            client.user.setActivity('Break time');
-
-            setTimeout(() => {
-              pomodoreStatus = 1;
-
-              if (pomodoreStatus.status && pomodoreStatus.textAlerts) {
-                message.channel.send(
-                  `You finished your ${
-                    pomodoreStatus.minutes[2] / 60000
-                  }min break! Let's get back to work again!`
-                );
-              }
-
-              if (pomodoreStatus.peopleToDm.length > 0) {
-                pomodoreStatus.peopleToDm.forEach((person) => {
-                  client.users.cache
-                    .get(person)
-                    .send(
-                      `You finished your ${
-                        pomodoreStatus.minutes[2] / 60000
-                      }min break! Let's get back to work again!`
-                    );
-                });
-              }
-
-              startANewCycle();
-            }, pomodoreStatus.minutes[2]);
-          } else {
-            client.user.setActivity('Type p!help');
-            return;
-          }
-        };
-
-        //Start the timer for the first time
-        message.channel.send("Pomodoro started! Let's get to work!");
-
-        //Function that checks time minute by minute and changes the status of the bot
-        checkTime = setInterval(() => {
-          let now = new Date();
-          let timePassed = now.getTime() - timerStartedTime.getTime();
-          let timeLeft;
-
-          if (pomodoreStatus.time % 2 != 0) {
-            timeLeft = parseInt(
-              (pomodoreStatus.minutes[0] - timePassed) / 60000
-            );
-            if (timeLeft < 10 && pomodoreStatus.timeShow) {
-              client.user.setActivity(`${timeLeft + 1}min left`);
-              pomodoreStatus.timeShow = false;
-            } else {
-              client.user.setActivity(`Working Time`);
-              pomodoreStatus.timeShow = true;
+          connections[servers.indexOf(message.guild.id)].dispatcher.on(
+            'finish',
+            () => {
+              connections[
+                servers.indexOf(message.guild.id)
+              ].dispatcher = connections[
+                servers.indexOf(message.guild.id)
+              ].connection.play('./sounds/silence-fixer.ogg');
             }
-          } else if (pomodoreStatus.time % 2 == 0 && pomodoreStatus.time != 8) {
-            timeLeft = parseInt(
-              (pomodoreStatus.minutes[1] - timePassed) / 60000
-            );
-            if (timeLeft < 10 && pomodoreStatus.timeShow) {
-              client.user.setActivity(`${timeLeft + 1}min left`);
-              pomodoreStatus.timeShow = false;
-            } else {
-              client.user.setActivity(`Break Time`);
-              pomodoreStatus.timeShow = true;
-            }
-          } else {
-            timeLeft = parseInt(
-              (pomodoreStatus.minutes[2] - timePassed) / 60000
-            );
-            if (timeLeft < 10 && pomodoreStatus.timeShow) {
-              client.user.setActivity(`${timeLeft + 1}min left`);
-              pomodoreStatus.timeShow = false;
-            } else {
-              client.user.setActivity(`Break Time`);
-              pomodoreStatus.timeShow = true;
-            }
-          }
-        }, 30000);
+          );
 
-        startANewCycle();
-      } else {
-        //If the dude who called the command is not in a voice channel
-        message.reply('You need to join a voice channel first!');
-      }
+          connections[servers.indexOf(message.guild.id)].timer = setTimeout(
+            () => {
+              if (servers.indexOf(message.guild.id) != -1) {
+                connections[servers.indexOf(message.guild.id)].time++;
+
+                if (
+                  connections[servers.indexOf(message.guild.id)].status &&
+                  pomodoreStatus.textAlerts
+                ) {
+                  message.channel.send(
+                    `You worked for ${
+                      connections[servers.indexOf(message.guild.id)]
+                        .minutes[0] / 60000
+                    }min! Time for a small break of ${
+                      connections[servers.indexOf(message.guild.id)]
+                        .minutes[1] / 60000
+                    }min!`
+                  );
+                }
+
+                if (
+                  servers.indexOf(message.guild.id) != -1 &&
+                  connections[servers.indexOf(message.guild.id)].peopleToDm &&
+                  connections[servers.indexOf(message.guild.id)].peopleToDm
+                    .length > 0
+                ) {
+                  connections[
+                    servers.indexOf(message.guild.id)
+                  ].peopleToDm.forEach((person) => {
+                    client.users.cache
+                      .get(person)
+                      .send(
+                        `You worked for ${
+                          connections[servers.indexOf(message.guild.id)]
+                            .minutes[0] / 60000
+                        }min! Time for a small break of ${
+                          connections[servers.indexOf(message.guild.id)]
+                            .minutes[1] / 60000
+                        }min!`
+                      );
+                  });
+                }
+
+                startANewCycle();
+              } else {
+                voiceChannel.leave();
+                return;
+              }
+            },
+            connections[servers.indexOf(message.guild.id)].minutes[0]
+          );
+        } else if (
+          servers.indexOf(message.guild.id) != -1 &&
+          connections[servers.indexOf(message.guild.id)].time % 2 == 0 &&
+          connections[servers.indexOf(message.guild.id)].time != 8 &&
+          connections[servers.indexOf(message.guild.id)].status
+        ) {
+          connections[
+            servers.indexOf(message.guild.id)
+          ].timerStartedTime = new Date();
+
+          connections[
+            servers.indexOf(message.guild.id)
+          ].dispatcher = connections[
+            servers.indexOf(message.guild.id)
+          ].connection.play('./sounds/time-over.ogg', {
+            volume: connections[servers.indexOf(message.guild.id)].volume,
+          });
+
+          connections[servers.indexOf(message.guild.id)].dispatcher.on(
+            'finish',
+            () => {
+              connections[
+                servers.indexOf(message.guild.id)
+              ].dispatcher = connections[
+                servers.indexOf(message.guild.id)
+              ].connection.play('./sounds/silence-fixer.ogg');
+            }
+          );
+
+          connections[servers.indexOf(message.guild.id)].timer = setTimeout(
+            () => {
+              if (servers.indexOf(message.guild.id) != -1) {
+                connections[servers.indexOf(message.guild.id)].time++;
+
+                if (
+                  servers.indexOf(message.guild.id) != -1 &&
+                  connections[servers.indexOf(message.guild.id)].status &&
+                  connections[servers.indexOf(message.guild.id)].textAlerts
+                ) {
+                  message.channel.send(
+                    `You finished your ${
+                      connections[servers.indexOf(message.guild.id)]
+                        .minutes[1] / 60000
+                    }min break! Let's get back to work again!`
+                  );
+                }
+
+                if (
+                  connections[servers.indexOf(message.guild.id)].peopleToDm &&
+                  connections[servers.indexOf(message.guild.id)].peopleToDm
+                    .length > 0 &&
+                  servers.indexOf(message.guild.id) != -1
+                ) {
+                  connections[
+                    servers.indexOf(message.guild.id)
+                  ].peopleToDm.forEach((person) => {
+                    client.users.cache
+                      .get(person)
+                      .send(
+                        `You finished your ${
+                          connections[servers.indexOf(message.guild.id)]
+                            .minutes[1] / 60000
+                        }min break! Let's get back to work again!`
+                      );
+                  });
+                }
+
+                startANewCycle();
+              } else {
+                voiceChannel.leave();
+                return;
+              }
+            },
+            connections[servers.indexOf(message.guild.id)].minutes[1]
+          );
+        } else if (
+          servers.indexOf(message.guild.id) != -1 &&
+          connections[servers.indexOf(message.guild.id)].time == 8 &&
+          connections[servers.indexOf(message.guild.id)].status
+        ) {
+          connections[
+            servers.indexOf(message.guild.id)
+          ].timerStartedTime = new Date();
+
+          connections[
+            servers.indexOf(message.guild.id)
+          ].dispatcher = connections[
+            servers.indexOf(message.guild.id)
+          ].connection.play('./sounds/time-over.ogg', {
+            volume: connections[servers.indexOf(message.guild.id)].volume,
+          });
+
+          connections[servers.indexOf(message.guild.id)].dispatcher.on(
+            'finish',
+            () => {
+              connections[
+                servers.indexOf(message.guild.id)
+              ].dispatcher = connections[
+                servers.indexOf(message.guild.id)
+              ].connection.play('./sounds/silence-fixer.ogg');
+            }
+          );
+
+          connections[servers.indexOf(message.guild.id)].timer = setTimeout(
+            () => {
+              if (servers.indexOf(message.guild.id) != -1) {
+                connections[servers.indexOf(message.guild.id)] = 1;
+
+                if (
+                  connections[servers.indexOf(message.guild.id)].status &&
+                  connections[servers.indexOf(message.guild.id)].textAlerts &&
+                  servers.indexOf(message.guild.id) != -1
+                ) {
+                  message.channel.send(
+                    `You finished your ${
+                      connections[servers.indexOf(message.guild.id)]
+                        .minutes[2] / 60000
+                    }min break! Let's get back to work again!`
+                  );
+                }
+
+                if (
+                  connections[servers.indexOf(message.guild.id)].peopleToDm &&
+                  connections[servers.indexOf(message.guild.id)].peopleToDm
+                    .length > 0 &&
+                  servers.indexOf(message.guild.id) != -1
+                ) {
+                  connections[
+                    servers.indexOf(message.guild.id)
+                  ].peopleToDm.forEach((person) => {
+                    client.users.cache
+                      .get(person)
+                      .send(
+                        `You finished your ${
+                          connections[servers.indexOf(message.guild.id)]
+                            .minutes[2] / 60000
+                        }min break! Let's get back to work again!`
+                      );
+                  });
+                }
+
+                startANewCycle();
+              } else {
+                voiceChannel.leave();
+                return;
+              }
+            },
+            connections[servers.indexOf(message.guild.id)].minutes[2]
+          );
+        } else {
+          return;
+        }
+      };
+
+      //Start the timer for the first time
+      message.channel.send("Pomodoro started! Let's get to work!");
+
+      startANewCycle();
+    } else {
+      //If the dude who called the command is not in a voice channel
+      message.reply('You need to join a voice channel first!');
+    }
+  }
+
+  //Remove bot from voice channel
+  if (message.content === 'p!stop') {
+    if (!message.member.voice.channel) {
+      message.reply('You are not in a voice channel!');
+      return;
     }
 
-    //Remove bot from voice channel
-    if (message.content === 'p!stop') {
-      if (!pomodoreStatus.status) {
+    if (servers.indexOf(message.guild.id) == -1) {
+      message.channel.send("There's no pomodoro running");
+      return;
+    } else {
+      if (!connections[servers.indexOf(message.guild.id)].status) {
         message.channel.send("There's no pomodoro currently running!");
         return;
       }
 
-      client.user.setActivity('Type p!help');
-
       message.channel.send('Nice work! Glad I could help!');
       message.member.voice.channel.leave();
 
-      pomodoreStatus.status = false;
-      pomodoreStatus.time = 0;
-      pomodoreStatus.onPomodoroChannel = false;
-      pomodoreStatus.pomodoroChannelName = 'pomodoro';
-      pomodoreStatus.peopleToDm = [];
-      pomodoreStatus.firstTime = true;
-      pomodoreStatus.textAlerts = true;
-      pomodoreStatus.timeShow = true;
-      pomodoreStatus.volume = 0.5;
-
-      connection = null;
-      dispatcher = null;
-      clearInterval(checkTime);
+      connections.splice(servers.indexOf(message.guild.id), 1);
+      servers.splice(servers.indexOf(message.guild.id), 1);
     }
+  }
 
-    //Status command
-    if (message.content === 'p!status') {
-      if (pomodoreStatus.status) {
-        let now = new Date();
-        let timePassed = now.getTime() - timerStartedTime.getTime();
-        let timeLeft;
+  //Status command
+  if (message.content === 'p!status') {
+    if (
+      servers.indexOf(message.guild.id) != -1 &&
+      connections[servers.indexOf(message.guild.id)].status
+    ) {
+      let now = new Date();
+      let timePassed =
+        now.getTime() -
+        connections[
+          servers.indexOf(message.guild.id)
+        ].timerStartedTime.getTime();
+      let timeLeft;
 
-        if (pomodoreStatus.time % 2 != 0) {
-          timeLeft = parseInt((pomodoreStatus.minutes[0] - timePassed) / 60000);
-          message.channel.send(
-            `${timeLeft + 1}min left to your break! Keep it up!`
-          );
-        } else if (pomodoreStatus.time % 2 == 0 && pomodoreStatus.time != 8) {
-          timeLeft = parseInt((pomodoreStatus.minutes[1] - timePassed) / 60000);
-          message.channel.send(`${timeLeft + 1}min left to start working!`);
-        } else {
-          timeLeft = parseInt((pomodoreStatus.minutes[2] - timePassed) / 60000);
-          message.channel.send(`${timeLeft + 1}min left to start working!`);
-        }
-      } else {
-        message.channel.send(`You haven't started a pomodoro timer yet`);
-      }
-    }
-
-    //Help command
-    if (message.content === 'p!help') {
-      const helpCommands = new Discord.MessageEmbed()
-        .setColor('#f00')
-        .setTitle('Pomodore commands')
-        .setDescription('Here is the list of commands to use the bot!')
-        .addFields(
-          {
-            name: 'Start the pomodoro with default values (25, 5, 15)',
-            value: 'p!start',
-          },
-          {
-            name: 'Start the pomodoro with specific values',
-            value: 'p!start [work time] [small break time] [big break time]',
-          },
-          { name: 'Stop the pomodoro', value: 'p!stop' },
-          {
-            name: 'Check the current status of the pomodoro',
-            value: 'p!status',
-          },
-          {
-            name: 'Toggle the notifications via direct message',
-            value: 'p!dm',
-          },
-          { name: 'Toggle the channel text notifications', value: 'p!togtext' },
-          {
-            name: 'Change the volume of the alerts, defaults to 50',
-            value: 'p!volume volume',
-          },
-          { name: 'Get the list of commands', value: 'p!help' }
+      if (
+        servers.indexOf(message.guild.id) != -1 &&
+        connections[servers.indexOf(message.guild.id)].time % 2 != 0
+      ) {
+        timeLeft = parseInt(
+          (connections[servers.indexOf(message.guild.id)].minutes[0] -
+            timePassed) /
+            60000
         );
-      message.author.send(helpCommands);
-    }
-
-    //Send alerts via DM
-    if (message.content === 'p!dm') {
-      if (pomodoreStatus.peopleToDm.includes(message.author.id)) {
-        pomodoreStatus.peopleToDm = pomodoreStatus.peopleToDm.filter(
-          (item) => item !== message.author.id
+        message.channel.send(
+          `${timeLeft + 1}min left to your break! Keep it up!`
         );
-        message.reply('you will stop receiving the alerts via Direct Message!');
+      } else if (
+        servers.indexOf(message.guild.id) != -1 &&
+        connections[servers.indexOf(message.guild.id)].time % 2 == 0 &&
+        connections[servers.indexOf(message.guild.id)].time != 8
+      ) {
+        timeLeft = parseInt(
+          (connections[servers.indexOf(message.guild.id)].minutes[1] -
+            timePassed) /
+            60000
+        );
+        message.channel.send(`${timeLeft + 1}min left to start working!`);
       } else {
-        pomodoreStatus.peopleToDm.push(message.author.id);
-        message.reply('you will now receive the alerts via Direct Message!');
+        timeLeft = parseInt(
+          (connections[servers.indexOf(message.guild.id)].minutes[2] -
+            timePassed) /
+            60000
+        );
+        message.channel.send(`${timeLeft + 1}min left to start working!`);
       }
+    } else {
+      message.channel.send(`You haven't started a pomodoro timer yet`);
     }
+  }
 
-    //Toggle text notifications
-    if (message.content === 'p!togtext') {
-      if (pomodoreStatus.status) {
-        pomodoreStatus.textAlerts = !pomodoreStatus.textAlerts;
+  //Help command
+  if (message.content === 'p!help') {
+    const helpCommands = new Discord.MessageEmbed()
+      .setColor('#f00')
+      .setTitle('Pomodore commands')
+      .setDescription('Here is the list of commands to use the bot!')
+      .addFields(
+        {
+          name: 'Start the pomodoro with default values (25, 5, 15)',
+          value: 'p!start',
+        },
+        {
+          name: 'Start the pomodoro with specific values',
+          value: 'p!start [work time] [small break time] [big break time]',
+        },
+        { name: 'Stop the pomodoro', value: 'p!stop' },
+        {
+          name: 'Check the current status of the pomodoro',
+          value: 'p!status',
+        },
+        {
+          name: 'Toggle the notifications via direct message',
+          value: 'p!dm',
+        },
+        { name: 'Toggle the channel text notifications', value: 'p!togtext' },
+        {
+          name: 'Change the volume of the alerts, defaults to 50',
+          value: 'p!volume volume',
+        },
+        { name: 'Get the list of commands', value: 'p!help' }
+      );
+    message.author.send(helpCommands);
+  }
 
-        if (pomodoreStatus.textAlerts) {
-          message.channel.send('The text notifications have been turned on!');
-        } else {
-          message.channel.send('The text notifications have been turned off!');
-        }
+  //Send alerts via DM
+  if (message.content === 'p!dm') {
+    if (servers.indexOf(message.guild.id) == -1) {
+      message.channel.send("There's no pomodoro running!");
+      return;
+    }
+    if (
+      connections[servers.indexOf(message.guild.id)].peopleToDm.includes(
+        message.author.id && servers.indexOf(message.guild.id) == -1
+      )
+    ) {
+      connections[servers.indexOf(message.guild.id)].peopleToDm = connections[
+        servers.indexOf(message.guild.id)
+      ].peopleToDm.filter((item) => item !== message.author.id);
+      message.reply('you will stop receiving the alerts via Direct Message!');
+    } else {
+      connections[servers.indexOf(message.guild.id)].peopleToDm.push(
+        message.author.id
+      );
+      message.reply('you will now receive the alerts via Direct Message!');
+    }
+  }
+
+  //Toggle text notifications
+  if (message.content === 'p!togtext') {
+    if (
+      connections[servers.indexOf(message.guild.id)].status &&
+      servers.indexOf(message.guild.id) != -1
+    ) {
+      connections[servers.indexOf(message.guild.id)].textAlerts = !connections[
+        servers.indexOf(message.guild.id)
+      ].textAlerts;
+
+      if (connections[servers.indexOf(message.guild.id)].textAlerts) {
+        message.channel.send('The text notifications have been turned on!');
       } else {
-        message.channel.send("There's no pomodoro timer currently running!");
+        message.channel.send('The text notifications have been turned off!');
       }
+    } else {
+      message.channel.send("There's no pomodoro timer currently running!");
     }
+  }
 
-    if (args[0] === 'p!volume') {
-      if (pomodoreStatus.status) {
-        if (args[1]) {
-          if (
-            parseInt(args[1]) < 1 ||
-            parseInt(args[1] > 100 || isNaN(parseInt(args[1])))
-          ) {
-            message.channel.send(
-              'Please insert a valid number between 0 and 100'
-            );
-          } else {
-            pomodoreStatus.volume = args[1] / 100;
-            message.channel.send(`The volume has been set to ${args[1]}`);
-          }
-        } else {
+  if (args[0] === 'p!volume') {
+    if (
+      connections[servers.indexOf(message.guild.id)].status &&
+      servers.indexOf(message.guild.id) != -1
+    ) {
+      if (args[1]) {
+        if (
+          parseInt(args[1]) < 1 ||
+          parseInt(args[1] > 100 || isNaN(parseInt(args[1])))
+        ) {
           message.channel.send(
-            'Please type a second argument with a number between 0 and 100'
+            'Please insert a valid number between 0 and 100'
           );
+        } else {
+          connections[servers.indexOf(message.guild.id)].volume = args[1] / 100;
+          message.channel.send(`The volume has been set to ${args[1]}`);
         }
       } else {
-        message.channel.send("There's no pomodoro timer currently running!");
+        message.channel.send(
+          'Please type a second argument with a number between 0 and 100'
+        );
       }
+    } else {
+      message.channel.send("There's no pomodoro timer currently running!");
     }
   }
 });
