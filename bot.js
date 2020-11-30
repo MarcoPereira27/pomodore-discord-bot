@@ -3,8 +3,7 @@ console.log('Beep beep');
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
-// client.login(process.env.DJS_TOKEN);
-client.login('Nzc2Mzk1OTc1MzQ5NzY0MTI2.X60RGQ.6XPAcdTNm9PUwuTtKBXdC2_SQTE');
+client.login(process.env.DJS_TOKEN);
 
 let connections = [];
 let servers = [];
