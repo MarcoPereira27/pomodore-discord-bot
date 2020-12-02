@@ -131,6 +131,7 @@ setInterval(() => {
   container.pomodoros.forEach((pomodoro) => {
     console.log(`${pomodoro.id}: ${pomodoro.time}`);
   });
+  console.log('#############################');
 }, 600000);
 
 client.on('message', async (message) => {
