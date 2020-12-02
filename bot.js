@@ -184,29 +184,34 @@ client.on('message', async (message) => {
         return;
       }
 
-      message.channel.send("Pomodoro started! Let's get to work!");
-
-      if (args[1] && args[2] && args[3]) {
-        container.addPomodoro(
-          new Pomodoro(
-            parseInt(args[1] * 60000),
-            parseInt(args[2] * 60000),
-            parseInt(args[3] * 60000),
-            await message.member.voice.channel.join(),
-            message.guild.id,
-            message
-          )
-        );
-      } else {
-        container.addPomodoro(
-          new Pomodoro(
-            1500000,
-            300000,
-            900000,
-            await message.member.voice.channel.join(),
-            message.guild.id,
-            message
-          )
+      try {
+        if (args[1] && args[2] && args[3]) {
+          container.addPomodoro(
+            new Pomodoro(
+              parseInt(args[1] * 60000),
+              parseInt(args[2] * 60000),
+              parseInt(args[3] * 60000),
+              await message.member.voice.channel.join(),
+              message.guild.id,
+              message
+            )
+          );
+        } else {
+          container.addPomodoro(
+            new Pomodoro(
+              1500000,
+              300000,
+              900000,
+              await message.member.voice.channel.join(),
+              message.guild.id,
+              message
+            )
+          );
+        }
+      } catch (err) {
+        console.log(err);
+        message.channel.send(
+          "I'm struggling to join your voice channel! Please check my permissions!"
         );
       }
     } else {
@@ -215,8 +220,7 @@ client.on('message', async (message) => {
       );
       return;
     }
-
-    console.log(container.pomodoros);
+    message.channel.send("Pomodoro started! Let's get to work!");
   }
 
   //Stop the pomodoro
