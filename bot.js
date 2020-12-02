@@ -213,6 +213,7 @@ client.on('message', async (message) => {
         message.channel.send(
           "I'm struggling to join your voice channel! Please check my permissions!"
         );
+        return;
       }
     } else {
       message.channel.send(
