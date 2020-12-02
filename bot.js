@@ -128,8 +128,10 @@ class Container {
 let container = new Container();
 
 setInterval(() => {
-  console.log(container.pomodoros);
-}, 10000);
+  container.pomodoros.forEach((pomodoro) => {
+    console.log(`${pomodoro.id}: ${pomodoro.time}`);
+  });
+}, 600000);
 
 client.on('message', async (message) => {
   if (!message.guild) return;
@@ -173,6 +175,17 @@ client.on('message', async (message) => {
 
     //Add Pomodoro with values or default
     if (message.member.voice.channel) {
+      let pomodoro = container.pomodoros.filter(
+        (pomodoro) => pomodoro.id == message.guild.id
+      );
+
+      if (pomodoro.length > 0) {
+        message.reply("There's already a pomodoro running!");
+        return;
+      }
+
+      message.channel.send("Pomodoro started! Let's get to work!");
+
       if (args[1] && args[2] && args[3]) {
         container.addPomodoro(
           new Pomodoro(
@@ -293,6 +306,11 @@ client.on('message', async (message) => {
   }
 
   if (args[0] == 'p!dm') {
+    if (!message.member.voice.channel) {
+      message.reply('You are not in a voice channel!');
+      return;
+    }
+
     let pomodoro = container.pomodoros.filter(
       (pomodoro) => pomodoro.id == message.guild.id
     );
@@ -306,6 +324,11 @@ client.on('message', async (message) => {
   }
 
   if (args[0] == 'p!togtext') {
+    if (!message.member.voice.channel) {
+      message.reply('You are not in a voice channel!');
+      return;
+    }
+
     let pomodoro = container.pomodoros.filter(
       (pomodoro) => pomodoro.id == message.guild.id
     );
@@ -319,6 +342,11 @@ client.on('message', async (message) => {
   }
 
   if (args[0] == 'p!volume') {
+    if (!message.member.voice.channel) {
+      message.reply('You are not in a voice channel!');
+      return;
+    }
+
     let pomodoro = container.pomodoros.filter(
       (pomodoro) => pomodoro.id == message.guild.id
     );

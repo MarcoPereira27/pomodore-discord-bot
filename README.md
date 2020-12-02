@@ -19,3 +19,9 @@ It enables:
 | p!togtext                                               | Toggle the channel text notifications           |
 | p!volume volume                                         | Change the volume of the alerts, defaults to 50 |
 | p!help                                                  | Get the list of commands                        |
+
+### Roadmap
+
+- [ ] Add Task Management
+- [ ] Multiple Pomodoros in one server
+- [ ] Save personal pomodoro data
