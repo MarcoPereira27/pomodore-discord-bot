@@ -184,7 +184,12 @@ client.on('message', async (message) => {
         return;
       }
 
-      message.channel.send("Pomodoro started! Let's get to work!");
+      let voiceConnection = message.member.voice.channel.join().catch(() => {
+        message.channel.send(
+          "I'm struggling to join the channel! Check my permissions!"
+        );
+        return;
+      });
 
       if (args[1] && args[2] && args[3]) {
         container.addPomodoro(
@@ -192,7 +197,7 @@ client.on('message', async (message) => {
             parseInt(args[1] * 60000),
             parseInt(args[2] * 60000),
             parseInt(args[3] * 60000),
-            await message.member.voice.channel.join(),
+            voiceConnection,
             message.guild.id,
             message
           )
@@ -203,7 +208,7 @@ client.on('message', async (message) => {
             1500000,
             300000,
             900000,
-            await message.member.voice.channel.join(),
+            voiceConnection,
             message.guild.id,
             message
           )
@@ -216,7 +221,7 @@ client.on('message', async (message) => {
       return;
     }
 
-    console.log(container.pomodoros);
+    message.channel.send("Pomodoro started! Let's get to work!");
   }
 
   //Stop the pomodoro
