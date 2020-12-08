@@ -78,7 +78,15 @@ class Pomodoro {
       }
 
       //Start a New Cycle
-      this.startANewCycle();
+      if (this.time < 100) {
+        this.startANewCycle();
+      } else {
+        this.stopTimer();
+        container.removePomodoro(this.message.guild.id);
+
+        this.message.channel.send('Nice work! Glad I could help!');
+        this.message.member.voice.channel.leave();
+      }
     }, this.interval);
   }
 
