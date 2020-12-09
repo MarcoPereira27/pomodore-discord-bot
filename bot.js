@@ -5,10 +5,8 @@ client.login(process.env.DJS_TOKEN);
 
 client.on('ready', () => {
   console.log('❤');
-  client.user.setActivity('Type p!help');
+  client.user.setActivity('Down for maintenance');
 });
-
-client.user.setActivity('Down for maintenance');
 
 class Pomodoro {
   constructor(workTime, smallBreak, bigBreak, connection, id, message) {
