@@ -8,6 +8,8 @@ client.on('ready', () => {
   client.user.setActivity('Type p!help');
 });
 
+client.setActivity('Down for maintenance');
+
 class Pomodoro {
   constructor(workTime, smallBreak, bigBreak, connection, id, message) {
     this.id = id;
@@ -30,15 +32,7 @@ class Pomodoro {
   }
 
   startANewCycle() {
-    if (this.message.member.voice.channel.members.size == 0) {
-      this.stopTimer();
-      container.removePomodoro(this.message.guild.id);
-
-      this.message.channel.send('Nice work! Glad I could help!');
-      this.message.member.voice.channel.leave();
-
-      return;
-    }
+    console.log(this.message.member.voice.channel);
 
     if (this.time % 2 != 0 && this.time != 7) {
       this.interval = this.workTime;
