@@ -30,14 +30,15 @@ class Pomodoro {
   }
 
   startANewCycle() {
-    if (this.time >= 50) {
+    if (this.time >= 25) {
       this.stopTimer();
-      container.removePomodoro(this.message.guild.id);
 
       this.message.channel.send(
         'You reached the maximum pomodoro cycles! Rest a little!'
       );
-      this.message.member.voice.channel.leave();
+      this.connection.disconnect();
+
+      container.removePomodoro(this.message.guild.id);
       return;
     }
 
