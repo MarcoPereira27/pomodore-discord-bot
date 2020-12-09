@@ -30,7 +30,7 @@ class Pomodoro {
   }
 
   startANewCycle() {
-    console.log(this.message.member.voice.channel);
+    console.log(this.connection);
 
     if (this.time % 2 != 0 && this.time != 7) {
       this.interval = this.workTime;
