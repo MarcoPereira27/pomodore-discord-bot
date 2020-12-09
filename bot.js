@@ -8,7 +8,7 @@ client.on('ready', () => {
   client.user.setActivity('Type p!help');
 });
 
-client.setActivity('Down for maintenance');
+client.user.setActivity('Down for maintenance');
 
 class Pomodoro {
   constructor(workTime, smallBreak, bigBreak, connection, id, message) {
