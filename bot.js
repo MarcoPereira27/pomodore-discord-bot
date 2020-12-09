@@ -30,6 +30,16 @@ class Pomodoro {
   }
 
   startANewCycle() {
+    if (this.message.member.voice.channel.members.size == 0) {
+      this.stopTimer();
+      container.removePomodoro(this.message.guild.id);
+
+      this.message.channel.send('Nice work! Glad I could help!');
+      this.message.member.voice.channel.leave();
+
+      return;
+    }
+
     if (this.time % 2 != 0 && this.time != 7) {
       this.interval = this.workTime;
       this.alertText = `You worked for ${
@@ -78,15 +88,7 @@ class Pomodoro {
       }
 
       //Start a New Cycle
-      if (this.time < 100) {
-        this.startANewCycle();
-      } else {
-        this.stopTimer();
-        container.removePomodoro(this.message.guild.id);
-
-        this.message.channel.send('Nice work! Glad I could help!');
-        this.message.member.voice.channel.leave();
-      }
+      this.startANewCycle();
     }, this.interval);
   }
 
@@ -151,33 +153,33 @@ client.on('message', async (message) => {
     //Check arguments
     if (args[1]) {
       if (
-        parseInt(args[1]) < 1 ||
+        parseInt(args[1]) < 5 ||
         parseInt(args[1]) > 120 ||
         isNaN(parseInt(args[1]))
       ) {
-        message.channel.send('Insert a valid time between 1 and 120 minutes!');
+        message.channel.send('Insert a valid time between 5 and 120 minutes!');
         return;
       }
     }
 
     if (args[2]) {
       if (
-        parseInt(args[2]) < 1 ||
+        parseInt(args[2]) < 5 ||
         parseInt(args[2]) > 120 ||
         isNaN(parseInt(args[2]))
       ) {
-        message.channel.send('Insert a valid time between 1 and 120 minutes!');
+        message.channel.send('Insert a valid time between 5 and 120 minutes!');
         return;
       }
     }
 
     if (args[3]) {
       if (
-        parseInt(args[3]) < 1 ||
+        parseInt(args[3]) < 5 ||
         parseInt(args[3]) > 120 ||
         isNaN(parseInt(args[3]))
       ) {
-        message.channel.send('Insert a valid time between 1 and 120 minutes!');
+        message.channel.send('Insert a valid time between 5 and 120 minutes!');
         return;
       }
     }
