@@ -5,7 +5,7 @@ client.login(process.env.DJS_TOKEN);
 
 client.on('ready', () => {
   console.log('❤');
-  client.user.setActivity('Down for maintenance');
+  client.user.setActivity('Type p!help');
 });
 
 class Pomodoro {
@@ -30,7 +30,16 @@ class Pomodoro {
   }
 
   startANewCycle() {
-    console.log(this.connection);
+    if (this.time >= 50) {
+      this.stopTimer();
+      container.removePomodoro(this.message.guild.id);
+
+      this.message.channel.send(
+        'You reached the maximum pomodoro cycles! Rest a little!'
+      );
+      this.message.member.voice.channel.leave();
+      return;
+    }
 
     if (this.time % 2 != 0 && this.time != 7) {
       this.interval = this.workTime;
@@ -248,8 +257,6 @@ client.on('message', async (message) => {
 
     message.channel.send('Nice work! Glad I could help!');
     message.member.voice.channel.leave();
-
-    console.log(container.pomodoros);
   }
 
   if (args[0] == 'p!status') {
