@@ -1,11 +1,17 @@
+require('dotenv').config();
+
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
-client.login(process.env.DJS_TOKEN);
+if (process.env.SH_TOKEN == '' || process.env.SH_TOKEN == undefined) {
+  client.login(process.env.DJS_TOKEN);
+} else {
+  client.login(process.env.SH_TOKEN);
+}
 
 client.on('ready', () => {
   console.log('❤');
-  client.user.setActivity('Type p!help');
+  client.user.setActivity('Type pd!help');
 });
 
 class Pomodoro {
@@ -151,7 +157,14 @@ client.on('message', async (message) => {
 
   const args = message.content.trim().split(' ');
 
-  if (args[0] === 'p!start') {
+  //Remove later
+  if (args[0] === 'p!start' || args[0] === 'p!help' || args[0] === 'p!stop') {
+    message.channel.send(
+      'The prefix changed to "pd!", type "pd!start" to start a pomodoro!'
+    );
+  }
+
+  if (args[0] === 'pd!start') {
     //Check arguments
     if (args[1]) {
       if (
@@ -238,7 +251,7 @@ client.on('message', async (message) => {
   }
 
   //Stop the pomodoro
-  if (args[0] == 'p!stop') {
+  if (args[0] == 'pd!stop') {
     if (!message.member.voice.channel) {
       message.reply('You are not in a voice channel!');
       return;
@@ -260,7 +273,7 @@ client.on('message', async (message) => {
     message.member.voice.channel.leave();
   }
 
-  if (args[0] == 'p!status') {
+  if (args[0] == 'pd!status') {
     let pomodoro = container.pomodoros.filter(
       (pomodoro) => pomodoro.id == message.guild.id
     );
@@ -288,7 +301,7 @@ client.on('message', async (message) => {
     }
   }
 
-  if (args[0] == 'p!help') {
+  if (args[0] == 'pd!help') {
     const helpCommands = new Discord.MessageEmbed()
       .setColor('#f00')
       .setTitle('Pomodore commands')
@@ -296,32 +309,32 @@ client.on('message', async (message) => {
       .addFields(
         {
           name: 'Start the pomodoro with default values (25, 5, 15)',
-          value: 'p!start',
+          value: 'pd!start',
         },
         {
           name: 'Start the pomodoro with specific values',
-          value: 'p!start [work time] [small break time] [big break time]',
+          value: 'pd!start [work time] [small break time] [big break time]',
         },
-        { name: 'Stop the pomodoro', value: 'p!stop' },
+        { name: 'Stop the pomodoro', value: 'pd!stop' },
         {
           name: 'Check the current status of the pomodoro',
-          value: 'p!status',
+          value: 'pd!status',
         },
         {
           name: 'Toggle the notifications via direct message',
-          value: 'p!dm',
+          value: 'pd!dm',
         },
-        { name: 'Toggle the channel text notifications', value: 'p!togtext' },
+        { name: 'Toggle the channel text notifications', value: 'pd!togtext' },
         {
           name: 'Change the volume of the alerts, defaults to 50',
-          value: 'p!volume volume',
+          value: 'pd!volume volume',
         },
-        { name: 'Get the list of commands', value: 'p!help' }
+        { name: 'Get the list of commands', value: 'pd!help' }
       );
     message.author.send(helpCommands);
   }
 
-  if (args[0] == 'p!dm') {
+  if (args[0] == 'pd!dm') {
     if (!message.member.voice.channel) {
       message.reply('You are not in a voice channel!');
       return;
@@ -339,7 +352,7 @@ client.on('message', async (message) => {
     pomodoro[0].addToDM(message.author.id, message);
   }
 
-  if (args[0] == 'p!togtext') {
+  if (args[0] == 'pd!togtext') {
     if (!message.member.voice.channel) {
       message.reply('You are not in a voice channel!');
       return;
@@ -357,7 +370,7 @@ client.on('message', async (message) => {
     pomodoro[0].toggleNotifications(message);
   }
 
-  if (args[0] == 'p!volume') {
+  if (args[0] == 'pd!volume') {
     if (!message.member.voice.channel) {
       message.reply('You are not in a voice channel!');
       return;
