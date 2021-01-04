@@ -36,7 +36,7 @@ class Pomodoro {
   }
 
   startANewCycle() {
-    if (this.time >= 25) {
+    if (this.time >= 20) {
       this.stopTimer();
 
       this.message.channel.send(
@@ -77,6 +77,7 @@ class Pomodoro {
     });
 
     this.dispatcher.on('finish', () => {
+      this.dispatcher.destroy();
       this.dispatcher = this.connection.play('./sounds/silence-fixer.ogg');
     });
 
@@ -91,7 +92,11 @@ class Pomodoro {
       //Send DM Alerts
       if (this.peopleToDm.length > 0) {
         this.peopleToDm.forEach((person) => {
-          client.users.cache.get(person).send(this.alertText);
+          try {
+            client.users.cache.get(person).send(this.alertText);
+          } catch {
+            console.log(`A problem ocurred trying to dm ${person}`);
+          }
         });
       }
 
