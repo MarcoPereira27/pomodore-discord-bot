@@ -67,7 +67,7 @@ class Pomodoro {
       this.interval = this.bigBreak;
       this.alertText = `You finished your ${
         this.bigBreak / 60000
-      }min break! Ket's get back to work!`;
+      }min break! Let's get back to work!`;
     }
 
     this.timerStartedTime = new Date();
@@ -160,13 +160,6 @@ client.on('message', async (message) => {
   if (!message.guild) return;
 
   const args = message.content.trim().split(' ');
-
-  //Remove later
-  if (args[0] === 'p!start' || args[0] === 'p!help' || args[0] === 'p!stop') {
-    message.channel.send(
-      'The prefix changed to "pd!", type "pd!start" to start a pomodoro!'
-    );
-  }
 
   if (args[0] === 'pd!start') {
     //Check arguments
