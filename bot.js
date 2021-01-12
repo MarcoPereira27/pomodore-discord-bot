@@ -32,6 +32,8 @@ class Pomodoro {
     this.alertText = '';
     this.interval = null;
 
+    this.connection.voice.setSelfDeaf(true);
+
     this.startANewCycle();
   }
 
