@@ -1,9 +1,13 @@
 require('dotenv').config();
-
 const Discord = require('discord.js');
+
 const client = new Discord.Client();
 
-client.login('Nzg2OTg0NTgwNzM3NTMxOTE0.X9OWgQ.lKCGXJK7b7erP_yjqfm7dVm975I');
+if (process.env.SH_TOKEN == '' || process.env.SH_TOKEN == undefined) {
+  client.login(process.env.DJS_TOKEN);
+} else {
+  client.login(process.env.SH_TOKEN);
+}
 
 client.on('ready', () => {
   console.log('❤');
