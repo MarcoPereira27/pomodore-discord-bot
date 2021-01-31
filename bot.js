@@ -1,13 +1,9 @@
 require('dotenv').config();
-const Discord = require('discord.js');
 
+const Discord = require('discord.js');
 const client = new Discord.Client();
 
-if (process.env.SH_TOKEN == '' || process.env.SH_TOKEN == undefined) {
-  client.login(process.env.DJS_TOKEN);
-} else {
-  client.login(process.env.SH_TOKEN);
-}
+client.login('Nzg2OTg0NTgwNzM3NTMxOTE0.X9OWgQ.lKCGXJK7b7erP_yjqfm7dVm975I');
 
 client.on('ready', () => {
   console.log('❤');
@@ -41,9 +37,9 @@ class Pomodoro {
     this.interval = null;
     this.textOnly = textOnly;
 
-    if (!textOnly) {
-      this.connection.voice.setSelfDeaf(true);
-    }
+    // if (!textOnly) {
+    //   this.connection.voice.setSelfDeaf(true);
+    // }
 
     this.startANewCycle();
   }
@@ -90,12 +86,14 @@ class Pomodoro {
       this.timerStartedTime = new Date();
 
       if (!this.textOnly) {
-        this.dispatcher = this.connection.play('./sounds/time-over.ogg', {
+        this.dispatcher = this.connection.playFile('./sounds/time-over.ogg', {
           volume: this.volume,
         });
 
-        this.dispatcher.on('finish', () => {
-          this.dispatcher = this.connection.play('./sounds/silence-fixer.ogg');
+        this.dispatcher.on('end', () => {
+          this.dispatcher = this.connection.playFile(
+            './sounds/silence-fixer.ogg'
+          );
         });
       }
 
@@ -111,9 +109,9 @@ class Pomodoro {
         if (this.peopleToDm.length > 0) {
           this.peopleToDm.forEach((person) => {
             try {
-              client.users.cache.get(person).send(this.alertText);
+              client.users.get(person).send(this.alertText);
             } catch (err) {
-              console.log(`A problem ocurred trying to dm ${person}`);
+              console.log(err);
             }
           });
         }
@@ -122,7 +120,7 @@ class Pomodoro {
         this.startANewCycle();
       }, this.interval);
     } catch (err) {
-      console.log('A problem ocurred trying to start a new cycle');
+      console.log(err);
     }
   }
 
@@ -213,7 +211,6 @@ client.on('message', async (message) => {
 
   const args = message.content.trim().split(' ');
 
-  //Text-only pomodoro
   if (args[0] === 'pd!tostart') {
     //Check arguments
     if (!checkParams(args[1], args[2], args[3], message)) {
@@ -274,7 +271,7 @@ client.on('message', async (message) => {
       return;
     }
 
-    if (message.member.voice.channel) {
+    if (message.member.voiceChannel) {
       let pomodoro = container.pomodoros.filter(
         (pomodoro) => pomodoro.id == message.guild.id
       );
@@ -291,7 +288,7 @@ client.on('message', async (message) => {
               parseInt(args[1] * 60000),
               parseInt(args[2] * 60000),
               parseInt(args[3] * 60000),
-              await message.member.voice.channel.join(),
+              await message.member.voiceChannel.join(),
               message.guild.id,
               message,
               false
@@ -303,7 +300,7 @@ client.on('message', async (message) => {
               1500000,
               300000,
               900000,
-              await message.member.voice.channel.join(),
+              await message.member.voiceChannel.join(),
               message.guild.id,
               message,
               false
@@ -338,7 +335,7 @@ client.on('message', async (message) => {
     }
 
     if (!pomodoroStop[0].textOnly) {
-      if (!message.member.voice.channel) {
+      if (!message.member.voiceChannel) {
         message.reply('You are not in a voice channel!');
         return;
       }
@@ -350,7 +347,7 @@ client.on('message', async (message) => {
     message.channel.send('Nice work! Glad I could help!');
 
     if (!pomodoroStop[0].textOnly) {
-      message.member.voice.channel.leave();
+      message.member.voiceChannel.leave();
     }
   }
 
@@ -434,7 +431,7 @@ client.on('message', async (message) => {
     }
 
     if (!pomodoro[0].textOnly) {
-      if (!message.member.voice.channel) {
+      if (!message.member.voiceChannel) {
         message.reply('You are not in a voice channel!');
         return;
       }
@@ -462,7 +459,7 @@ client.on('message', async (message) => {
       return;
     }
 
-    if (!message.member.voice.channel) {
+    if (!message.member.voiceChannel) {
       message.reply('You are not in a voice channel!');
       return;
     }
@@ -483,7 +480,7 @@ client.on('message', async (message) => {
       return;
     }
 
-    if (!message.member.voice.channel) {
+    if (!message.member.voiceChannel) {
       message.reply('You are not in a voice channel!');
       return;
     }
