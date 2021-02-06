@@ -21,6 +21,7 @@ It enables:
 | pd!togtext                                                 | Toggle the channel text notifications                 |
 | pd!volume volume                                           | Change the volume of the alerts, defaults to 50       |
 | pd!help                                                    | Get the list of commands                              |
+| pd!clear                                                   | Deletes the last 30 messages related to the bot       |
 
 ### Self-Hosting
 

@@ -14,6 +14,18 @@ client.on('ready', () => {
   client.user.setActivity('Type pd!help');
 });
 
+const COMMANDS = [
+  'pd!start',
+  'pd!tostart',
+  'pd!stop',
+  'pd!status',
+  'pd!dm',
+  'pd!togtext',
+  'pd!volume',
+  'pd!help',
+  'pd!clear',
+];
+
 class Pomodoro {
   constructor(
     workTime,
@@ -215,7 +227,7 @@ client.on('message', async (message) => {
 
   const args = message.content.trim().split(' ');
 
-  if (args[0] === 'pd!tostart') {
+  if (args[0] === COMMANDS[1]) {
     //Check arguments
     if (!checkParams(args[1], args[2], args[3], message)) {
       return;
@@ -269,7 +281,7 @@ client.on('message', async (message) => {
     message.channel.send("Pomodoro started! Let's get to work!");
   }
 
-  if (args[0] === 'pd!start') {
+  if (args[0] === COMMANDS[0]) {
     //Check arguments
     if (!checkParams(args[1], args[2], args[3], message)) {
       return;
@@ -328,7 +340,7 @@ client.on('message', async (message) => {
   }
 
   //Stop the pomodoro
-  if (args[0] == 'pd!stop') {
+  if (args[0] == COMMANDS[2]) {
     let pomodoroStop = container.pomodoros.filter(
       (pomodoro) => pomodoro.id == message.guild.id
     );
@@ -355,7 +367,7 @@ client.on('message', async (message) => {
     }
   }
 
-  if (args[0] == 'pd!status') {
+  if (args[0] == COMMANDS[3]) {
     let pomodoro = container.pomodoros.filter(
       (pomodoro) => pomodoro.id == message.guild.id
     );
@@ -383,7 +395,7 @@ client.on('message', async (message) => {
     }
   }
 
-  if (args[0] == 'pd!help') {
+  if (args[0] == COMMANDS[7]) {
     const helpCommands = new Discord.MessageEmbed()
       .setColor('#f00')
       .setTitle('Pomodore commands')
@@ -424,7 +436,7 @@ client.on('message', async (message) => {
     message.author.send(helpCommands);
   }
 
-  if (args[0] == 'pd!dm') {
+  if (args[0] == COMMANDS[4]) {
     let pomodoro = container.pomodoros.filter(
       (pomodoro) => pomodoro.id == message.guild.id
     );
@@ -444,7 +456,7 @@ client.on('message', async (message) => {
     pomodoro[0].addToDM(message.author.id, message);
   }
 
-  if (args[0] == 'pd!togtext') {
+  if (args[0] == COMMANDS[5]) {
     let pomodoro = container.pomodoros.filter(
       (pomodoro) => pomodoro.id == message.guild.id
     );
@@ -469,7 +481,7 @@ client.on('message', async (message) => {
     }
   }
 
-  if (args[0] == 'pd!volume') {
+  if (args[0] == COMMANDS[6]) {
     let pomodoro = container.pomodoros.filter(
       (pomodoro) => pomodoro.id == message.guild.id
     );
@@ -504,5 +516,51 @@ client.on('message', async (message) => {
         'Please type a second argument with a number between 0 and 100'
       );
     }
+  }
+
+  if (args[0] == COMMANDS[8]) {
+    let messagesProcessed = 0;
+    let allDeleted = true;
+    message.channel
+      .fetchMessages({ limit: 30 })
+      .then((messages) => {
+        messages.forEach((message) => {
+          let messageContent = message.content.trim().split(' ');
+          if (
+            COMMANDS.includes(messageContent[0]) ||
+            message.author.id == client.user.id
+          ) {
+            message
+              .delete()
+              .then(() => {
+                messagesProcessed++;
+                if (messagesProcessed == 29) {
+                  if (!allDeleted) {
+                    message.channel.send(
+                      'There was a problem deleting some of the messages! Please check my permissions!'
+                    );
+                  }
+                }
+              })
+              .catch(() => {
+                messagesProcessed++;
+                allDeleted = false;
+
+                if (messagesProcessed == 29) {
+                  if (!allDeleted) {
+                    message.channel.send(
+                      'There was a problem deleting some of the messages! Please check my permissions!'
+                    );
+                  }
+                }
+              });
+          }
+        });
+      })
+      .catch(() => {
+        message.channel.send(
+          'There was a problem deleting the messages! Please check my permissions!'
+        );
+      });
   }
 });
