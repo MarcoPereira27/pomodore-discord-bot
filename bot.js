@@ -396,43 +396,65 @@ client.on('message', async (message) => {
   }
 
   if (args[0] == COMMANDS[7]) {
-    const helpCommands = new Discord.MessageEmbed()
+    const helpCommands = new Discord.RichEmbed()
       .setColor('#f00')
       .setTitle('Pomodore commands')
-      .setDescription('Here is the list of commands to use the bot!')
-      .addFields(
-        {
+      .setDescription('Here is the list of commands to use the bot!');
+			[
+				{
           name: 'Start the pomodoro with default values (25, 5, 15)',
           value: 'pd!start',
+					isInline: true
         },
         {
           name: 'Start a text-only pomodoro with default values',
           value: 'pd!tostart',
+					isInline: true
         },
         {
           name: 'Start the pomodoro with specific values',
           value: 'pd!start [work time] [small break time] [big break time]',
+					isInline: true
         },
         {
           name: 'Start a text-only pomodoro with specific values',
           value: 'pd!tostart [work time] [small break time] [big break time]',
-        },
-        { name: 'Stop the pomodoro', value: 'pd!stop' },
-        {
-          name: 'Check the current status of the pomodoro',
-          value: 'pd!status',
+					isInline: true
         },
         {
-          name: 'Toggle the notifications via direct message',
-          value: 'pd!dm',
-        },
-        { name: 'Toggle the channel text notifications', value: 'pd!togtext' },
+						name: 'Stop the pomodoro',
+					 	value: 'pd!stop',
+						isInline: true
+				},
         {
-          name: 'Change the volume of the alerts, defaults to 50',
-          value: 'pd!volume volume',
+	          name: 'Check the current status of the pomodoro',
+	          value: 'pd!status',
+						isInline: true
         },
-        { name: 'Get the list of commands', value: 'pd!help' }
-      );
+        {
+	          name: 'Toggle the notifications via direct message',
+	          value: 'pd!dm',
+						isInline: true
+        },
+        {
+						name: 'Toggle the channel text notifications',
+						value: 'pd!togtext',
+						isInline: true
+				},
+        {
+	          name: 'Change the volume of the alerts, defaults to 50',
+	          value: 'pd!volume volume',
+						isInline: true
+        },
+        {
+					name: 'Get the list of commands',
+					value: 'pd!help',
+					isInline: true
+				}
+	].forEach(({name, value, isInline}) => {
+	  helpCommands.addField(name, value, isInline)
+	})
+
     message.author.send(helpCommands);
   }
 
