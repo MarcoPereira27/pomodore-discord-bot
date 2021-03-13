@@ -26,6 +26,9 @@ const COMMANDS = [
   'pd!clear',
 ];
 
+const LASTWORK_TIME = [7, 15, 23];
+const BIGBREAK_TIME = [8, 16, 24];
+
 class Pomodoro {
   constructor(
     workTime,
@@ -62,7 +65,7 @@ class Pomodoro {
 
   startANewCycle() {
     try {
-      if (this.time >= 20) {
+      if (this.time >= 25) {
         this.stopTimer();
 
         this.message.channel.send(
@@ -77,22 +80,22 @@ class Pomodoro {
         return;
       }
 
-      if (this.time % 2 != 0 && this.time != 7) {
+      if (this.time % 2 != 0 && !LASTWORK_TIME.includes(this.time)) {
         this.interval = this.workTime;
         this.alertText = `You worked for ${
           this.workTime / 60000
         }min! Time for a small break of ${this.smallBreak / 60000}min!`;
-      } else if (this.time == 7) {
+      } else if (LASTWORK_TIME.includes(this.time)) {
         this.interval = this.workTime;
         this.alertText = `You worked for ${
           this.workTime / 60000
         }min! Time for a big break of ${this.bigBreak / 60000}min!`;
-      } else if (this.time % 2 == 0 && this.time != 8) {
+      } else if (this.time % 2 == 0 && !BIGBREAK_TIME.includes(this.time)) {
         this.interval = this.smallBreak;
         this.alertText = `You finished your ${
           this.smallBreak / 60000
         }min break! Let's get back to work!`;
-      } else if (this.time == 8) {
+      } else if (BIGBREAK_TIME.includes(this.time)) {
         this.interval = this.bigBreak;
         this.alertText = `You finished your ${
           this.bigBreak / 60000
@@ -215,12 +218,7 @@ function checkParams(arg1, arg2, arg3, message) {
   return checked;
 }
 
-setInterval(() => {
-  container.pomodoros.forEach((pomodoro) => {
-    console.log(`${pomodoro.id}: ${pomodoro.time}: ${pomodoro.textOnly}`);
-  });
-  console.log('#############################');
-}, 600000);
+setInterval(() => {}, 600000);
 
 client.on('message', async (message) => {
   if (!message.guild) return;
@@ -400,60 +398,60 @@ client.on('message', async (message) => {
       .setColor('#f00')
       .setTitle('Pomodore commands')
       .setDescription('Here is the list of commands to use the bot!');
-			[
-				{
-          name: 'Start the pomodoro with default values (25, 5, 15)',
-          value: 'pd!start',
-					isInline: true
-        },
-        {
-          name: 'Start a text-only pomodoro with default values',
-          value: 'pd!tostart',
-					isInline: true
-        },
-        {
-          name: 'Start the pomodoro with specific values',
-          value: 'pd!start [work time] [small break time] [big break time]',
-					isInline: true
-        },
-        {
-          name: 'Start a text-only pomodoro with specific values',
-          value: 'pd!tostart [work time] [small break time] [big break time]',
-					isInline: true
-        },
-        {
-						name: 'Stop the pomodoro',
-					 	value: 'pd!stop',
-						isInline: true
-				},
-        {
-	          name: 'Check the current status of the pomodoro',
-	          value: 'pd!status',
-						isInline: true
-        },
-        {
-	          name: 'Toggle the notifications via direct message',
-	          value: 'pd!dm',
-						isInline: true
-        },
-        {
-						name: 'Toggle the channel text notifications',
-						value: 'pd!togtext',
-						isInline: true
-				},
-        {
-	          name: 'Change the volume of the alerts, defaults to 50',
-	          value: 'pd!volume volume',
-						isInline: true
-        },
-        {
-					name: 'Get the list of commands',
-					value: 'pd!help',
-					isInline: true
-				}
-	].forEach(({name, value, isInline}) => {
-	  helpCommands.addField(name, value, isInline)
-	})
+    [
+      {
+        name: 'Start the pomodoro with default values (25, 5, 15)',
+        value: 'pd!start',
+        isInline: true,
+      },
+      {
+        name: 'Start a text-only pomodoro with default values',
+        value: 'pd!tostart',
+        isInline: true,
+      },
+      {
+        name: 'Start the pomodoro with specific values',
+        value: 'pd!start [work time] [small break time] [big break time]',
+        isInline: true,
+      },
+      {
+        name: 'Start a text-only pomodoro with specific values',
+        value: 'pd!tostart [work time] [small break time] [big break time]',
+        isInline: true,
+      },
+      {
+        name: 'Stop the pomodoro',
+        value: 'pd!stop',
+        isInline: true,
+      },
+      {
+        name: 'Check the current status of the pomodoro',
+        value: 'pd!status',
+        isInline: true,
+      },
+      {
+        name: 'Toggle the notifications via direct message',
+        value: 'pd!dm',
+        isInline: true,
+      },
+      {
+        name: 'Toggle the channel text notifications',
+        value: 'pd!togtext',
+        isInline: true,
+      },
+      {
+        name: 'Change the volume of the alerts, defaults to 50',
+        value: 'pd!volume volume',
+        isInline: true,
+      },
+      {
+        name: 'Get the list of commands',
+        value: 'pd!help',
+        isInline: true,
+      },
+    ].forEach(({ name, value, isInline }) => {
+      helpCommands.addField(name, value, isInline);
+    });
 
     message.author.send(helpCommands);
   }
