@@ -3,6 +3,10 @@ const Discord = require('discord.js');
 
 const client = new Discord.Client();
 
+setTimeout(() => {
+  client.ws.connection.triggerReady();
+}, 30000);
+
 if (process.env.SH_TOKEN == '' || process.env.SH_TOKEN == undefined) {
   client.login(process.env.DJS_TOKEN);
 } else {
