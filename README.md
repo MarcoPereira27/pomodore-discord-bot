@@ -35,9 +35,3 @@ To self-host this bot follow these steps:
 - Run `npm install`
 - Invite your bot to your server
 - Run `node bot.js`
-
-### Roadmap
-
-- [ ] Add Task Management
-- [ ] Multiple Pomodoros in one server
-- [ ] Save personal pomodoro data
